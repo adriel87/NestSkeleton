@@ -83,3 +83,147 @@ export class ValidationPipe implements PipeTransform<string,number>{
     }
 }
 ```
+
+para mas info [👀](https://docs.nestjs.com/pipes#custom-pipes)
+
+### valiando clases o tipos de objetos
+
+Es normal que por el  cuerpo de una peticion nos lleguen datos, digamos desordenados. Podriamos hacer mas potente nuestros pipes para la validacion o transformacion de estos argumentos, que comprueben si lo que se esta enviando es por ejemplo un objeto del tipo User
+
+hay varias foras de hacer esto veamos un par de ellas
+
+### Object Schema Validation
+
+para hacer esta validacion nos ayudaremos de una libreria que nos facilitara el trabajo [`joi`](https://joi.dev/api/?v=17.6.0)
+
+```shell
+$ npm i --save joi
+$ npm i --save-dev @types/joi
+
+```
+
+ahora vemos a crearnos una clase que nos valide si el esquema del objeto que vamos a usar es el correcto en por ejemplo una peticion post
+
+
+# under construtc
+```typescript
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import { ObjectSchema } from 'joi';
+
+@Injectable()
+export class SchemaValidation implements PipeTransform {
+  constructor(private schema: ObjectSchema) {}
+
+  transform(value: any, metadata: ArgumentMetadata) {
+    const { error } = this.schema.validate(value);
+    if (error) {
+      throw new BadRequestException('Validation failed');
+    }
+    return value;
+  }
+}
+```
+
+### Class validation
+
+Tambien podemos validar las clases 
+para ello debemos realizar la siguiente instalcion
+```shell
+$ npm i --save class-validator class-transformer
+```
+
+ahora en nuestro dto de user, vamos indicar mediante etiquetas como es cada tipo de dato
+
+```typescript
+export class ClassValidation implements PipeTransform<any>{
+    async transform(value: any, { metatype }: ArgumentMetadata) {
+        
+        if (!metatype || !this.toValidate(metatype)) {
+            return value;
+        }
+
+        const object = plainToClass(metatype, value);
+        const errors = await validate(object)
+
+        if ( errors.length > 0 ){
+            throw new BadRequestException('validation failed')
+        }
+
+        return value;
+    }
+
+
+    private toValidate(metatype: Function): boolean {
+        const types: Function[] = [String, Boolean, Number, Array, Object];
+        return !types.includes(metatype);
+    }
+}
+```
+
+## [ 👀 ](https://docs.nestjs.com/pipes#class-validator)
+
+
+### Scope
+
+recordemos  que para tener un alcance global podemos cargar estos pipes en nuestro archivo main.ts
+
+`app.useGlobalPipes(new <tupipeAqui>)`
+
+### inyectarlos en modulos
+
+o podemos indicar que pipe usa cada modulo en general de esta forma
+
+```typescript
+
+import { Module } from '@nestjs/common';
+import { APP_PIPE } from '@nestjs/core';
+
+@Module({
+  providers: [
+    {
+      provide: APP_PIPE,
+      useClass: ValidationPipe,
+    },
+  ],
+})
+export class AppModule {}
+
+```
+
+## tranformaciones
+
+igual que podemos validar los datos desde el cliente, igual en alguna ocasion vamos a necesitar transformalos de alguna manera
+por ejemplo pasar de un entero a una cadena o viceseversa
+
+```typescript
+
+import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+
+@Injectable()
+export class ParseIntPipe implements PipeTransform<string, number> {
+  transform(value: string, metadata: ArgumentMetadata): number {
+    const val = parseInt(value, 10);
+    if (isNaN(val)) {
+      throw new BadRequestException('Validation failed');
+    }
+    return val;
+  }
+}
+
+```
+
+luego lo podemos usar como cualquier pipe, en nuestro controlador
+
+```typescript
+
+@Get(':id')
+async findOne(@Param('id', new ParseIntPipe()) id) {
+  return this.catsService.findOne(id);
+}
+
+```
+
+para ver mas sobre los pipes
+
+# [ 👀 ](https://docs.nestjs.com/pipes)
+

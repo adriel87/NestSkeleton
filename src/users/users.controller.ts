@@ -1,10 +1,13 @@
-import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, UseFilters } from '@nestjs/common';
+import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, UseFilters, UsePipes } from '@nestjs/common';
 import { ForbiddenException } from 'src/exceptions/forbidden.exception';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './interfaces/user.interface';
 import { UserService } from './users.services';
 import { HttpExceptionFilter } from '../exceptions/filters/http-exception.filter';
 import { ValidationPipe } from '../pipes/validation.pipe';
+import { ClassValidation } from '../pipes/classValidation.pipe';
+
+
 
 @Controller('users')
 export class UsersController {
@@ -51,6 +54,7 @@ export class UsersController {
         throw new GoneException();
     }
 
+
     @Get('pipes/:id')
     async simplePipe(@Param('id', ParseIntPipe) id:number){
         return this.userService.findOne(id)
@@ -60,5 +64,21 @@ export class UsersController {
     async customPipe(@Body(new ValidationPipe()) age:string){
         return age;
     }
+
+
+    
+// TODO intentar sacar la validacion por esquemas de Joi
+    // @Post('pipes')
+    // @UsePipes(new SchemaValidation(Joi.object()))
+    // async createWhitPipe(@Body() createUserDto: CreateUserDto){
+    //     this.userService.create(createUserDto)
+    // }
+
+    @Post('pipes/class')
+    async createWhitClassValidation(
+        @Body(new ClassValidation()) createUserDto: CreateUserDto)
+        {
+            this.userService.create(createUserDto)
+        }
 
 }
