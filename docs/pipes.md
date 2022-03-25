@@ -52,3 +52,34 @@ ahora vamos a lanzar la misma peticion pero cambiando el parametro `localhost:30
 ```
 
 ## creando nuestros custom pipes
+
+Primero nos crearemos nuestra clase que extienda de PipeTransform
+
+para luego implementarla
+
+```typescript
+import { Injectable, PipeTransform, ArgumentMetadata } from '@nestjs/common'
+
+@Injectable()
+export class ValidationPipe implements PipeTransform<number,string>{
+    transform(value: number, metadata: ArgumentMetadata) {
+        console.log(metadata); // log para ver que hay dentro de la metadata
+
+        return value.toString()+'transformando el numerito'
+        
+    }
+}
+```
+
+como vemos la clase implenta la interfaz `PipeTransform` es una interfzas generica, si no le indicamos los tipos trabajara como si fuera argumentos de tipo *any* sin embargo podemos indicarle el valor del valor ***value***, de entrada y el retorno, por ejemplo recibimos un string y queremos devolver un nomero
+
+```typescript
+export class ValidationPipe implements PipeTransform<string,number>{
+    transform(value: string, metadata: ArgumentMetadata) {
+        ...
+        ...
+        return un valor numerico;
+        
+    }
+}
+```

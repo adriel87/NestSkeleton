@@ -4,6 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './interfaces/user.interface';
 import { UserService } from './users.services';
 import { HttpExceptionFilter } from '../exceptions/filters/http-exception.filter';
+import { ValidationPipe } from '../pipes/validation.pipe';
 
 @Controller('users')
 export class UsersController {
@@ -52,11 +53,12 @@ export class UsersController {
 
     @Get('pipes/:id')
     async simplePipe(@Param('id', ParseIntPipe) id:number){
-        console.log('pipes here');
-
         return this.userService.findOne(id)
-
     }
 
+    @Get('pipes/custom/:id')
+    async customPipe(@Body(new ValidationPipe()) age:string){
+        return age;
+    }
 
 }
