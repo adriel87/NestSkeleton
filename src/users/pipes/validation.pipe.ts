@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform, ArgumentMetadata } from '@nestjs/common'
-import { User } from '../users/interfaces/user.interface';
+import { User } from '../interfaces/user.interface';
 
 @Injectable()
 export class ValidationPipe implements PipeTransform<User,string>{
