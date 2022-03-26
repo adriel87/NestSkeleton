@@ -1,4 +1,4 @@
-import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, UseFilters, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, UseFilters, UseGuards, UsePipes } from '@nestjs/common';
 import { ForbiddenException } from './exceptions/forbidden.exception';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './interfaces/user.interface';
@@ -7,10 +7,12 @@ import { UserService } from './users.services';
 import { ValidationPipe } from './pipes/validation.pipe';
 import { ClassValidation } from './pipes/classValidation.pipe';
 import { HttpExceptionFilter } from './exceptions/filters/http-exception.filter';
+import { RolesGuard } from './guards/role.guard';
 
 
 
 @Controller('users')
+@UseGuards(RolesGuard)
 export class UsersController {
 
     constructor(private userService:UserService){}
