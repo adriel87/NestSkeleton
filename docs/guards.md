@@ -46,3 +46,84 @@ resumiendolo mucho es un un contexto que hace referencia a varias cosas, entre e
 
 vamos a repetir el guard anterior pero en este caso vamos a definir que roles son los que pueden acceder a cada ruta
 
+```typescript
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { Observable } from "rxjs";
+
+@Injectable()
+export class RolesGuard implements CanActivate{
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        return false;    // recordemos que aqui tenemos que validar 
+                        // lo que nos trae el contexto y validar en
+                        // cada caso
+    }
+```
+
+## Scope
+
+Los guards como se pueden usar desde la capa mas baja del controlador hasta nivel global o injectarlo dentro de un modulo
+
+### ruta
+
+```typescript
+    @UseGuards(RolesGuard)
+    @Get('errorCustom')
+    async customError(){
+        throw new ForbiddenException()
+    }
+```
+
+###  controller
+
+```typescript
+@Controller('users')
+// @UseGuards(RolesGuard)
+export class UsersController {
+
+    constructor(private userService:UserService){}
+
+    @Post()
+    async create(@Body() createUserDto: CreateUserDto){
+...
+...
+...
+}
+}
+```
+
+### Global
+
+```typescript
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.use(RolesGuard)
+  await app.listen(3000);
+}
+```
+
+## Usar roles con nuestros Guards
+
+ahora vemos a modificar algo nuestro codigo para poder acceder al al contexto de http para pedir un Rol y luego determinar con nuestro guard si es posible acceder a la ruta o no
+
+primero vamos crearnos un [decorardor](decorator.md)
+
+
+```typescript
+import { SetMetadata } from '@nestjs/common'
+
+export const Roles = (...roles: string[]) => SetMetadata('roles',roles)
+```
+
+ahora vamos a usar nuestra etiqueta personalizada en alguna de nuestras rutas.
+
+```typescript
+   @Post()
+    @Roles('admin')
+    async create(@Body() createUserDto: CreateUserDto){
+
+        this.userService.create(createUserDto);
+
+    }
+```
+
+

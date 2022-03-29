@@ -1,4 +1,4 @@
-import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, UseFilters, UseGuards, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, GoneException, HttpException, HttpStatus, Param, ParseIntPipe, Post, SetMetadata, UseFilters, UseGuards, UseInterceptors, UsePipes } from '@nestjs/common';
 import { ForbiddenException } from './exceptions/forbidden.exception';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './interfaces/user.interface';
@@ -8,6 +8,9 @@ import { ValidationPipe } from './pipes/validation.pipe';
 import { ClassValidation } from './pipes/classValidation.pipe';
 import { HttpExceptionFilter } from './exceptions/filters/http-exception.filter';
 import { RolesGuard } from './guards/role.guard';
+import { Roles } from './decorators/roles.decorator';
+import { setTimeout } from 'timers/promises';
+import { LoggingInterceptor } from './interceptors/logging.interceptor';
 
 
 
@@ -18,6 +21,7 @@ export class UsersController {
     constructor(private userService:UserService){}
 
     @Post()
+    @Roles('admin')
     async create(@Body() createUserDto: CreateUserDto){
 
         this.userService.create(createUserDto);
@@ -44,7 +48,7 @@ export class UsersController {
         }, HttpStatus.BAD_REQUEST);
         
     }
-
+    // @UseGuards(RolesGuard)
     @Get('errorCustom')
     async customError(){
         throw new ForbiddenException()
@@ -66,6 +70,17 @@ export class UsersController {
     @Get('pipes/custom/:id')
     async customPipe(@Body(new ValidationPipe()) age:string){
         return age;
+    }
+
+    @Get('intercep')
+    @Roles('admin')
+    @UseInterceptors(new LoggingInterceptor())
+    async time(){
+        await setTimeout(1000)
+        return {
+            msg:'probando un interceptor',
+            ok:true
+        }
     }
 
 
