@@ -11,6 +11,8 @@ import { RolesGuard } from './guards/role.guard';
 import { Roles } from './decorators/roles.decorator';
 import { setTimeout } from 'timers/promises';
 import { LoggingInterceptor } from './interceptors/logging.interceptor';
+import { UserDecorator } from './decorators/user.decorator';
+import { UserI } from './interfaces/userI.interface';
 
 
 
@@ -81,6 +83,13 @@ export class UsersController {
             msg:'probando un interceptor',
             ok:true
         }
+    }
+
+    @Get('decorator')
+    async decorator(@UserDecorator('name') name :string){
+
+        console.log(name);
+        
     }
 
 
